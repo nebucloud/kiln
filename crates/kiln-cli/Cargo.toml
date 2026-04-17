@@ -18,6 +18,11 @@ name = "kiln"
 path = "src/main.rs"
 
 [dependencies]
+kiln-core = { workspace = true }
+kiln-cache = { workspace = true }
+kiln-exec = { workspace = true }
+clap = { workspace = true }
+serde_json = { workspace = true }
 
 [lints]
 workspace = true
