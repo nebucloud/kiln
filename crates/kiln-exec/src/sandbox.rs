@@ -44,9 +44,20 @@
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
 use crate::error::ExecError;
+
+/// Per-process monotonic counter for sandbox workspace uniqueness.
+///
+/// Two sandboxes created in the same process for the same `target_id`
+/// must get distinct workspace directories (otherwise parallel tests
+/// or wave-internal parallelism collide). M-AVOID-STATICS treats
+/// "performance optimization" statics as acceptable; this is a
+/// lightweight equivalent: a per-process serial number that doesn't
+/// need cross-version synchronization.
+static SANDBOX_SEQ: AtomicU64 = AtomicU64::new(0);
 
 /// Configuration for sandbox isolation.
 ///
@@ -162,8 +173,11 @@ impl Sandbox {
     /// Returns [`ExecError::is_sandbox_setup`] when the workspace
     /// directory cannot be created.
     pub fn new(config: SandboxConfig, target_id: &str) -> Result<Self, ExecError> {
-        let work_dir =
-            std::env::temp_dir().join(format!("kiln-sandbox-{}-{target_id}", std::process::id(),));
+        let seq = SANDBOX_SEQ.fetch_add(1, Ordering::Relaxed);
+        let work_dir = std::env::temp_dir().join(format!(
+            "kiln-sandbox-{}-{seq}-{target_id}",
+            std::process::id(),
+        ));
 
         std::fs::create_dir_all(&work_dir).map_err(|err| {
             ExecError::sandbox_setup(

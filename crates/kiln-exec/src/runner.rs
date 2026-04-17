@@ -43,11 +43,39 @@ pub struct RunResult {
 
 /// Runs a target inside its sandbox.
 ///
-/// Resolves the interpreter, applies the [`SandboxConfig`] to a fresh
-/// [`Command`], and waits for completion. When `config.wall_clock_timeout`
-/// is set, a watchdog thread sends `SIGTERM` after the deadline and
-/// `SIGKILL` 5 seconds later. On failure (non-zero exit), the target's
-/// `cleanup` block runs (if present) before the error propagates.
+/// Convenience wrapper that constructs a fresh [`Sandbox`] from
+/// `config` and delegates to [`run_target_in_sandbox`]. Use the
+/// `_in_sandbox` variant when you need to perform setup work
+/// (such as fetch-then-seal staging) inside the sandbox workspace
+/// before the run block executes — that variant takes a sandbox
+/// the caller already created.
+///
+/// # Errors
+///
+/// See [`run_target_in_sandbox`] plus [`ExecError::is_sandbox_setup`]
+/// for sandbox construction failures.
+pub fn run_target(
+    target_id: &TargetId,
+    target: &Target,
+    config: SandboxConfig,
+) -> Result<RunResult, ExecError> {
+    let sandbox = Sandbox::new(config, target_id.as_ref())?;
+    run_target_in_sandbox(target_id, target, &sandbox)
+}
+
+/// Runs a target inside a caller-owned sandbox.
+///
+/// Resolves the interpreter, applies the [`Sandbox`]'s config to a
+/// fresh [`Command`], and waits for completion. When the sandbox's
+/// `wall_clock_timeout` is set, a watchdog thread sends `SIGTERM`
+/// after the deadline and `SIGKILL` 5 seconds later. On failure
+/// (non-zero exit), the target's `cleanup` block runs (if present)
+/// before the error propagates.
+///
+/// The caller owns the sandbox lifecycle. The `Executor` uses this
+/// to stage [`FetchSpec`](kiln_core::FetchSpec) downloads into the
+/// sandbox workspace before the network is sealed and the run block
+/// runs.
 ///
 /// # Errors
 ///
@@ -55,19 +83,16 @@ pub struct RunResult {
 /// - [`ExecError::is_target_failed`] when the run block exits non-zero.
 /// - [`ExecError::is_target_timeout`] when the wall-clock deadline fires
 ///   before the run block finishes.
-/// - [`ExecError::is_sandbox_setup`] when the sandbox cannot be created.
-pub fn run_target(
+pub fn run_target_in_sandbox(
     target_id: &TargetId,
     target: &Target,
-    config: SandboxConfig,
+    sandbox: &Sandbox,
 ) -> Result<RunResult, ExecError> {
-    let timeout = config.wall_clock_timeout;
-    let sandbox = Sandbox::new(config, target_id.as_ref())?;
-
     let mut cmd = Command::new(&target.run.interpreter);
     cmd.arg("-c").arg(&target.run.code);
     sandbox.apply_to_command(&mut cmd);
 
+    let timeout = sandbox.config().wall_clock_timeout;
     let output = spawn_with_timeout(&mut cmd, timeout, target_id.as_ref())?;
     let exit_code = output.status.code().unwrap_or(-1);
     let stdout = String::from_utf8_lossy(&output.stdout).into_owned();

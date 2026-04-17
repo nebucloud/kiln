@@ -33,6 +33,7 @@
 //! [kln-d-04]: https://github.com/nebucloud/docs/blob/main/KLN-D-extraction-decisions.md
 
 pub mod error;
+pub mod executor;
 pub mod fetch;
 pub mod runner;
 pub mod sandbox;
@@ -41,9 +42,11 @@ pub mod shell_backend;
 #[doc(inline)]
 pub use crate::error::ExecError;
 #[doc(inline)]
+pub use crate::executor::{ExecutionReport, Executor};
+#[doc(inline)]
 pub use crate::fetch::{Fetcher, MockFetcher};
 #[doc(inline)]
-pub use crate::runner::{run_target, run_target_cached, RunResult};
+pub use crate::runner::{run_target, run_target_cached, run_target_in_sandbox, RunResult};
 #[doc(inline)]
 pub use crate::sandbox::{can_isolate_namespaces, Sandbox, SandboxConfig};
 #[doc(inline)]

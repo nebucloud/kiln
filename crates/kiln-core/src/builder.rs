@@ -60,7 +60,7 @@ use std::collections::HashMap;
 
 use crate::error::KilnError;
 use crate::resource::{Resource, ResourceRef};
-use crate::target::{Pipeline, PipelineVersion, ShellBlock, Target, TargetId};
+use crate::target::{FetchSpec, Pipeline, PipelineVersion, ShellBlock, Target, TargetId};
 
 /// Fluent builder for [`Target`].
 ///
@@ -78,6 +78,7 @@ pub struct TargetBuilder {
     resources: Vec<ResourceRef>,
     inputs: Vec<String>,
     outputs: Vec<String>,
+    fetches: Vec<FetchSpec>,
     metadata: HashMap<String, serde_json::Value>,
 }
 
@@ -196,6 +197,43 @@ impl TargetBuilder {
         self
     }
 
+    /// Replaces the `fetches` list with the supplied specs.
+    #[must_use]
+    pub fn fetches<I>(mut self, items: I) -> Self
+    where
+        I: IntoIterator<Item = FetchSpec>,
+    {
+        self.fetches = items.into_iter().collect();
+        self
+    }
+
+    /// Appends a [`FetchSpec`] to the target's fetch declarations.
+    ///
+    /// Convenience constructor: pass URL + destination, no digest. Use
+    /// [`Self::fetch_with_blake3`] when you have a verified digest.
+    #[must_use]
+    pub fn fetch(
+        mut self,
+        url: impl Into<String>,
+        destination: impl Into<std::path::PathBuf>,
+    ) -> Self {
+        self.fetches.push(FetchSpec::new(url, destination));
+        self
+    }
+
+    /// Appends a [`FetchSpec`] with a BLAKE3 hex digest attached.
+    #[must_use]
+    pub fn fetch_with_blake3(
+        mut self,
+        url: impl Into<String>,
+        destination: impl Into<std::path::PathBuf>,
+        blake3_hex: impl Into<String>,
+    ) -> Self {
+        self.fetches
+            .push(FetchSpec::new(url, destination).with_blake3(blake3_hex));
+        self
+    }
+
     /// Inserts a metadata entry, overwriting any prior value at `key`.
     #[must_use]
     pub fn metadata(mut self, key: impl Into<String>, value: serde_json::Value) -> Self {
@@ -225,6 +263,7 @@ impl TargetBuilder {
             resources: self.resources,
             inputs: self.inputs,
             outputs: self.outputs,
+            fetches: self.fetches,
             metadata: self.metadata,
         })
     }

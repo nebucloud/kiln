@@ -86,6 +86,57 @@ impl From<&str> for TargetId {
     }
 }
 
+/// One declared resource a target needs fetched before its run block.
+///
+/// Fetches run in the unsealed phase of the sandbox (network still
+/// accessible) per [KLN-D-04][kln-d-04]: kiln pulls each fetch, writes
+/// it into the sandbox workspace at `destination`, optionally
+/// verifying the BLAKE3 digest, and then seals the network before
+/// invoking the target's `run` block.
+///
+/// # 0.1.0 limitation
+///
+/// Only BLAKE3 verification is supported in 0.1.0. SHA-256 (the
+/// algorithm the KLN-D-extraction-decisions §02 example uses) lands
+/// in 0.2 — register the fetch with `blake3_hex = None` until then if
+/// the upstream only publishes a SHA-256 digest.
+///
+/// [kln-d-04]: https://github.com/nebucloud/docs/blob/main/KLN-D-extraction-decisions.md
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FetchSpec {
+    /// URL of the resource to fetch.
+    pub url: String,
+    /// Path inside the sandbox workspace where the fetched bytes are
+    /// written. Relative paths are resolved against the workspace
+    /// root.
+    pub destination: std::path::PathBuf,
+    /// Optional lowercase-hex BLAKE3 digest of the response body.
+    ///
+    /// When `Some`, the [`Fetcher`](https://docs.rs/kiln-exec/latest/kiln_exec/trait.Fetcher.html)
+    /// must reject the response on mismatch.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub blake3_hex: Option<String>,
+}
+
+impl FetchSpec {
+    /// Constructs a `FetchSpec` from a URL and destination.
+    #[must_use]
+    pub fn new(url: impl Into<String>, destination: impl Into<std::path::PathBuf>) -> Self {
+        Self {
+            url: url.into(),
+            destination: destination.into(),
+            blake3_hex: None,
+        }
+    }
+
+    /// Returns this `FetchSpec` with the supplied BLAKE3 hex digest attached.
+    #[must_use]
+    pub fn with_blake3(mut self, hex: impl Into<String>) -> Self {
+        self.blake3_hex = Some(hex.into());
+        self
+    }
+}
+
 /// An interpreter name plus the script source the interpreter executes.
 ///
 /// kiln dispatches a [`Target`]'s `run` (and optional `cleanup`)
@@ -167,6 +218,16 @@ pub struct Target {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub outputs: Vec<String>,
 
+    /// Resources to fetch into the sandbox before the network is sealed.
+    ///
+    /// kiln runs each entry's fetch while the sandbox network is still
+    /// open, writes the bytes to the workspace at the spec's
+    /// `destination`, optionally verifies its BLAKE3 digest, and only
+    /// then seals the network and invokes the run block. Implements
+    /// the fetch-then-seal pattern from KLN-D-04.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fetches: Vec<FetchSpec>,
+
     /// Arbitrary metadata for downstream tooling.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub metadata: HashMap<String, serde_json::Value>,
@@ -187,6 +248,7 @@ impl Target {
             resources: Vec::new(),
             inputs: Vec::new(),
             outputs: Vec::new(),
+            fetches: Vec::new(),
             metadata: HashMap::new(),
         }
     }

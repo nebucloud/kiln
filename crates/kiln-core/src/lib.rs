@@ -60,6 +60,6 @@ pub use crate::planner::{build_execution_plan, ExecutionPlan};
 #[doc(inline)]
 pub use crate::resource::{AccessMode, Resource, ResourceId, ResourceRef};
 #[doc(inline)]
-pub use crate::target::{Pipeline, PipelineVersion, ShellBlock, Target, TargetId};
+pub use crate::target::{FetchSpec, Pipeline, PipelineVersion, ShellBlock, Target, TargetId};
 #[doc(inline)]
 pub use crate::types::KilnType;
