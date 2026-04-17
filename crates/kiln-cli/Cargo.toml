@@ -10,9 +10,14 @@ authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [[bin]]
 name = "kiln"
 path = "src/main.rs"
 
 [dependencies]
+
+[lints]
+workspace = true

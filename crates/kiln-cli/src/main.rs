@@ -1,3 +1,4 @@
+// Rust guideline compliant 2026-02-21
 //! kiln — command-line interface.
 //!
 //! M1 stub. Real commands (`run`, `cache`, `inspect`, `log`) land

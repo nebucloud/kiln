@@ -10,5 +10,10 @@ authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
+
+[lints]
+workspace = true

@@ -1,3 +1,4 @@
+// Rust guideline compliant 2026-02-21
 //! kiln — facade crate. Re-exports the public surface of
 //! `kiln-core`, `kiln-cache`, and `kiln-exec`.
 //!
