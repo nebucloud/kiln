@@ -23,6 +23,12 @@ keywords = ["hermetic", "sandbox", "build", "cache", "execution"]
 categories = ["development-tools::build-utils"]
 
 [workspace.dependencies]
+# Internal crates — referenced from sibling members via `workspace = true`.
+kiln-core = { path = "crates/kiln-core", version = "0.1.0" }
+kiln-cache = { path = "crates/kiln-cache", version = "0.1.0" }
+kiln-exec = { path = "crates/kiln-exec", version = "0.1.0" }
+
+# External crates.
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
