@@ -42,13 +42,17 @@
 //!
 //! [KLN-D-extraction-decisions §KLN-D-02]: https://github.com/nebucloud/docs/blob/main/KLN-D-extraction-decisions.md
 
+pub mod builder;
 pub mod error;
+pub mod manifest;
 pub mod planner;
 pub mod resource;
 pub mod target;
 pub mod types;
 pub mod validator;
 
+#[doc(inline)]
+pub use crate::builder::{PipelineBuilder, TargetBuilder};
 #[doc(inline)]
 pub use crate::error::KilnError;
 #[doc(inline)]

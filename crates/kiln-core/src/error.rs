@@ -66,6 +66,18 @@ impl KilnError {
         matches!(self.kind, ErrorKind::DuplicateTarget { .. })
     }
 
+    /// Returns `true` when a builder reached `.build()` without a required field.
+    #[must_use]
+    pub fn is_missing_required(&self) -> bool {
+        matches!(self.kind, ErrorKind::MissingRequired { .. })
+    }
+
+    /// Returns `true` when JSON parsing failed.
+    #[must_use]
+    pub fn is_json_parse_error(&self) -> bool {
+        matches!(self.kind, ErrorKind::JsonParse { .. })
+    }
+
     /// Returns the captured backtrace.
     pub fn backtrace(&self) -> &Backtrace {
         &self.backtrace
@@ -103,6 +115,22 @@ impl KilnError {
             backtrace: Backtrace::capture(),
         }
     }
+
+    pub(crate) fn missing_required(field: impl Into<String>) -> Self {
+        Self {
+            kind: ErrorKind::MissingRequired {
+                field: field.into(),
+            },
+            backtrace: Backtrace::capture(),
+        }
+    }
+
+    pub(crate) fn json_parse(source: serde_json::Error) -> Self {
+        Self {
+            kind: ErrorKind::JsonParse { source },
+            backtrace: Backtrace::capture(),
+        }
+    }
 }
 
 impl Display for KilnError {
@@ -124,11 +152,27 @@ impl Display for KilnError {
             ErrorKind::DuplicateTarget { target } => {
                 write!(f, "target id `{target}` is declared more than once")
             }
+            ErrorKind::MissingRequired { field } => {
+                write!(f, "builder is missing the required `{field}` field")
+            }
+            ErrorKind::JsonParse { source } => {
+                write!(f, "failed to parse pipeline JSON: {source}")
+            }
         }
     }
 }
 
-impl std::error::Error for KilnError {}
+impl std::error::Error for KilnError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match &self.kind {
+            ErrorKind::JsonParse { source } => Some(source),
+            ErrorKind::CyclicDependency { .. }
+            | ErrorKind::UnknownTargetReference { .. }
+            | ErrorKind::DuplicateTarget { .. }
+            | ErrorKind::MissingRequired { .. } => None,
+        }
+    }
+}
 
 /// Internal enum representing the precise failure mode.
 ///
@@ -147,6 +191,12 @@ pub(crate) enum ErrorKind {
     },
     DuplicateTarget {
         target: String,
+    },
+    MissingRequired {
+        field: String,
+    },
+    JsonParse {
+        source: serde_json::Error,
     },
 }
 
@@ -200,6 +250,26 @@ mod tests {
         assert!(rendered.contains("`a`"), "{rendered}");
         assert!(rendered.contains("`nope`"), "{rendered}");
         assert!(rendered.contains("requires"), "{rendered}");
+    }
+
+    #[test]
+    fn missing_required_query() {
+        let err = KilnError::missing_required("shell");
+        assert!(err.is_missing_required());
+        assert!(!err.is_cyclic_dependency());
+    }
+
+    #[test]
+    fn json_parse_query_and_source_chain() {
+        let json_err = serde_json::from_str::<i32>("not valid").expect_err("invalid json");
+        let err = KilnError::json_parse(json_err);
+        assert!(err.is_json_parse_error());
+
+        // The serde_json::Error must be reachable through std::error::Error::source
+        // for compatibility with the broader error-handling ecosystem, even
+        // though the type itself is not exposed in our public API surface.
+        let source = std::error::Error::source(&err);
+        assert!(source.is_some());
     }
 
     #[test]

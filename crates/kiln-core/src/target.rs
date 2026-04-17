@@ -287,6 +287,56 @@ impl Pipeline {
     pub fn validate(&self) -> Result<(), crate::KilnError> {
         crate::validator::validate(self)
     }
+
+    /// Returns a fresh [`PipelineBuilder`](crate::builder::PipelineBuilder).
+    ///
+    /// See `kiln_core::builder` for the chainable API.
+    #[must_use]
+    pub fn builder() -> crate::builder::PipelineBuilder {
+        crate::builder::PipelineBuilder::new()
+    }
+
+    /// Parses a [`Pipeline`] from a JSON string and validates it.
+    ///
+    /// Thin wrapper around
+    /// [`manifest::from_json_str`](crate::manifest::from_json_str).
+    ///
+    /// # Errors
+    ///
+    /// See [`manifest::from_json_str`](crate::manifest::from_json_str).
+    pub fn from_json_str(json: &str) -> Result<Self, crate::KilnError> {
+        crate::manifest::from_json_str(json)
+    }
+
+    /// Serializes this pipeline to a compact JSON string.
+    ///
+    /// # Errors
+    ///
+    /// See
+    /// [`manifest::to_json_string`](crate::manifest::to_json_string).
+    pub fn to_json_string(&self) -> Result<String, crate::KilnError> {
+        crate::manifest::to_json_string(self)
+    }
+
+    /// Serializes this pipeline to a pretty-printed JSON string.
+    ///
+    /// # Errors
+    ///
+    /// See
+    /// [`manifest::to_json_string_pretty`](crate::manifest::to_json_string_pretty).
+    pub fn to_json_string_pretty(&self) -> Result<String, crate::KilnError> {
+        crate::manifest::to_json_string_pretty(self)
+    }
+}
+
+impl Target {
+    /// Returns a fresh [`TargetBuilder`](crate::builder::TargetBuilder).
+    ///
+    /// See `kiln_core::builder` for the chainable API.
+    #[must_use]
+    pub fn builder() -> crate::builder::TargetBuilder {
+        crate::builder::TargetBuilder::new()
+    }
 }
 
 #[cfg(test)]
