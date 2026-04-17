@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+[workspace]
+resolver = "2"
+members = [
+    "crates/kiln-core",
+    "crates/kiln-cache",
+    "crates/kiln-exec",
+    "crates/kiln",
+    "crates/kiln-cli",
+    "crates/kiln-service",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "Apache-2.0 OR MIT"
+authors = ["Antonette Caldwell"]
+repository = "https://github.com/nebucloud/kiln"
+homepage = "https://github.com/nebucloud/kiln"
+readme = "README.md"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+blake3 = "1"
+petgraph = "0.6"
+thiserror = "1"
+tracing = "0.1"
+clap = { version = "4", features = ["derive"] }
+tonic = "0.11"
+prost = "0.12"
