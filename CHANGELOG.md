@@ -8,9 +8,15 @@ project follows [Semantic Versioning](https://semver.org/) once
 ## [0.1.0] — 2026-04-16
 
 Initial public release. Five crates published to crates.io:
-`kiln-core`, `kiln-cache`, `kiln-exec`, `kiln` (facade),
+`kiln-core`, `kiln-cache`, `kiln-exec`, `kiln-runtime` (facade),
 `kiln-cli`. The `kiln-service` (gRPC) crate is intentionally held
 back for the 0.2 release alongside the Conductor MCP integration.
+
+The canonical short name `kiln` was already claimed (and yanked)
+on crates.io; the facade ships under `kiln-runtime` for 0.1.0
+while a transfer ticket is open with help@crates.io. If the name
+transfers, `kiln 0.2` will re-export `kiln-runtime` and the
+runtime crate will be deprecated cleanly.
 
 This release ships unsigned. Per
 [KLN-PLAN-extraction §7][plan] the first SSF-signed release is a
@@ -95,11 +101,13 @@ release that gates its own existence).
 - `ExecError` — boxed-kind error type with eight `is_*` query
   methods and `From` conversions from `CacheError` / `KilnError`.
 
-### Added — `kiln` (facade)
+### Added — `kiln-runtime` (facade)
 
 - 0.1.0 ships an empty facade crate scaffold so the name is
-  reserved on crates.io. Real re-exports land in 0.2 once the
-  cross-crate API surface stabilizes.
+  reserved on crates.io and downstream consumers have a stable
+  handle to depend on. Convenience re-exports + a `prelude`
+  module land in 0.2 once the cross-crate API surface
+  stabilizes.
 
 ### Added — `kiln-cli`
 

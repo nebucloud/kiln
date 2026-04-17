@@ -5,7 +5,7 @@ members = [
     "crates/kiln-core",
     "crates/kiln-cache",
     "crates/kiln-exec",
-    "crates/kiln",
+    "crates/kiln-runtime",
     "crates/kiln-cli",
     "crates/kiln-service",
 ]

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 [package]
-name = "kiln"
-description = "Hermetic, content-addressed, parallel task execution (facade crate)"
+name = "kiln-runtime"
+description = "Hermetic, content-addressed, parallel task execution (facade over kiln-core / kiln-cache / kiln-exec)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

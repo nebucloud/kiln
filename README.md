@@ -2,9 +2,9 @@
 
 Hermetic, content-addressed, parallel task execution.
 
-> Status: 0.1.0 in development. M1 (workspace skeleton) only.
-> Real content lands in M2–M7. See the milestone plan in
-> [`KLN-PLAN-extraction.md`][plan] in `nebucloud/docs`.
+> Status: **0.1.0 published to crates.io** (April 16, 2026). See the
+> milestone plan in [`KLN-PLAN-extraction.md`][plan] in
+> `nebucloud/docs` for the full roadmap.
 
 [plan]: https://github.com/nebucloud/docs/blob/main/KLN-PLAN-extraction.md
 
@@ -18,16 +18,31 @@ life inside `terranoxos/terranox-tools/lattice-exec`.
 
 ## Crates
 
-| Crate | Purpose | Milestone |
-|-------|---------|-----------|
-| [`kiln-core`](crates/kiln-core) | Types, planner, validation | M2 |
-| [`kiln-cache`](crates/kiln-cache) | Content-addressed cache (BLAKE3) | M3 |
-| [`kiln-exec`](crates/kiln-exec) | Sandbox + runner + shell backends | M4 |
-| [`kiln`](crates/kiln) | Facade — re-exports public surface | M2–M4 |
-| [`kiln-cli`](crates/kiln-cli) | `kiln` binary (clap) | M5 |
-| [`kiln-service`](crates/kiln-service) | gRPC server (planned 0.2.0) | M8 |
+| crates.io | Source | Purpose |
+|-----------|--------|---------|
+| [`kiln-core`](https://crates.io/crates/kiln-core) | [crates/kiln-core](crates/kiln-core) | Types, planner, validation |
+| [`kiln-cache`](https://crates.io/crates/kiln-cache) | [crates/kiln-cache](crates/kiln-cache) | Content-addressed cache (BLAKE3) |
+| [`kiln-exec`](https://crates.io/crates/kiln-exec) | [crates/kiln-exec](crates/kiln-exec) | Sandbox + runner + shell backends |
+| [`kiln-runtime`](https://crates.io/crates/kiln-runtime) | [crates/kiln-runtime](crates/kiln-runtime) | Facade — re-exports the public surface ¹ |
+| [`kiln-cli`](https://crates.io/crates/kiln-cli) | [crates/kiln-cli](crates/kiln-cli) | `kiln` binary (clap) |
+| [`kiln-service`](https://crates.io/crates/kiln-service) | [crates/kiln-service](crates/kiln-service) | gRPC server — held back for 0.2.0 |
 
-## Build
+¹ The canonical short name `kiln` was already claimed (and yanked)
+on crates.io. A transfer ticket is open with help@crates.io; if
+granted, `kiln` will publish as a re-export of `kiln-runtime` in
+0.2.
+
+## Install
+
+```bash
+# Just the CLI (binary name `kiln`):
+cargo install kiln-cli
+
+# As a library dependency:
+cargo add kiln-core kiln-cache kiln-exec
+```
+
+## Build from source
 
 ```bash
 cargo check --workspace
@@ -36,7 +51,7 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-MSRV: 1.75. Linux-only for 0.1.x — see the risk register in the
+MSRV: 1.81. Linux-only for 0.1.x — see the risk register in the
 extraction plan.
 
 ## License
