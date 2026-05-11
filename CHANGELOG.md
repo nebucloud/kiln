@@ -5,6 +5,52 @@ All notable changes to kiln are documented here. Format follows
 project follows [Semantic Versioning](https://semver.org/) once
 1.0.0 ships. Pre-1.0 minor versions may include breaking changes.
 
+## [Unreleased]
+
+### Added — `kiln-exec`
+
+- `Sandbox` honors `SandboxConfig::isolate_filesystem`: builds a
+  `pivot_root`-based filesystem jail containing only the declared
+  `allowed_inputs` (read-only bind-mounts), `allowed_outputs`
+  (writable bind-mounts), `/proc`, a minimal `/dev`
+  (null/zero/random/urandom), and a fresh `/tmp` tmpfs. After the
+  pivot the host filesystem is no longer reachable from inside the
+  sandbox. Standard runtime paths (`/lib`, `/lib64`, `/usr/lib`,
+  `/usr/lib64`, `/bin/sh`, `/usr/bin/env`, `/bin/bash`) are
+  auto-bound read-only when present so the run block's interpreter
+  and shared libraries still resolve.
+- When `isolate_filesystem` is set, `Sandbox` also unshares a user
+  namespace so the child has `CAP_SYS_ADMIN` inside the new ns —
+  required for `pivot_root(2)` and `mount(2)` from an unprivileged
+  caller. Previously this only happened when `isolate_network` was
+  set; both gates now imply user-namespace creation independently.
+- Pre-allocated `PivotPlan` keeps the post-`fork(2)` / pre-`exec(2)`
+  closure free of heap-allocated path data, minimising work in the
+  fork-exec window.
+- Graceful fallback: if `pivot_root` fails (WSL2, restricted
+  kernels), the partial tmpfs is detached with `MNT_DETACH` and
+  the child stays in the namespace-only path. The build proceeds;
+  the lost isolation is observable via the caller's tracing logs.
+
+### Changed — `kiln-exec`
+
+- `SandboxConfig::allowed_inputs` and `allowed_outputs` field docs
+  no longer say "0.2+ only / no-op" — they're enforced when
+  `isolate_filesystem` is enabled.
+- `apply_namespace_isolation` now takes the workspace path so it
+  can hand it to the pivot plan. Internal API only; the public
+  `Sandbox::apply_to_command` signature is unchanged.
+
+### Still deferred — `kiln-exec`
+
+- cgroup v2 memory / CPU limits (`memory_limit`, `cpu_limit_ms`).
+- PID-namespace isolation (`isolate_pid`).
+- Hermeticity snapshotting / output-path enforcement beyond bind
+  mounts.
+
+These fields remain on `SandboxConfig` for forward-compatibility
+and are no-ops in this release.
+
 ## [0.1.0] — 2026-04-16
 
 Initial public release. Five crates published to crates.io:
