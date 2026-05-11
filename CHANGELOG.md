@@ -5,7 +5,17 @@ All notable changes to kiln are documented here. Format follows
 project follows [Semantic Versioning](https://semver.org/) once
 1.0.0 ships. Pre-1.0 minor versions may include breaking changes.
 
-## [Unreleased]
+## [0.1.1] — 2026-05-11
+
+Patch release implementing milestone **M9a** from
+`KLN-PLAN-extraction.md` — `pivot_root` + bind-mount filesystem
+isolation in `kiln-exec::Sandbox`. Additive: no API breaks. Callers
+that didn't set `SandboxConfig::isolate_filesystem` see no
+behaviour change. Callers that did set it (a no-op in 0.1.0) now
+get the documented filesystem jail.
+
+The release ships unsigned, like 0.1.0 — SSF Phase 2 hasn't landed
+yet. The first SSF-signed kiln release remains tracked as M7.5.
 
 ### Added — `kiln-exec`
 

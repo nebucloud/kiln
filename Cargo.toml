@@ -11,7 +11,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 # MSRV 1.81 because the ms-rust restriction lints
 # (allow_attributes_without_reason, etc.) require the `reason = "..."`
@@ -27,9 +27,9 @@ categories = ["development-tools::build-utils"]
 
 [workspace.dependencies]
 # Internal crates — referenced from sibling members via `workspace = true`.
-kiln-core = { path = "crates/kiln-core", version = "0.1.0" }
-kiln-cache = { path = "crates/kiln-cache", version = "0.1.0" }
-kiln-exec = { path = "crates/kiln-exec", version = "0.1.0" }
+kiln-core = { path = "crates/kiln-core", version = "0.1.1" }
+kiln-cache = { path = "crates/kiln-cache", version = "0.1.1" }
+kiln-exec = { path = "crates/kiln-exec", version = "0.1.1" }
 
 # External crates.
 tokio = { version = "1", features = ["full"] }
